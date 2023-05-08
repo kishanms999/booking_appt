@@ -1,0 +1,125 @@
+<html>
+    <body>
+        <form onsubmit="userDetails(event)" >
+            <label>Name</label>
+            <input type="text" name="username" id="username" required>
+            <label>E-mail</label>
+            <input type="email" name="emailId" id="emailid" required>
+            <label>Phone Number</label>
+            <input type="number" name="phno" id="phno" required>
+            <button>Submit</button>
+        </form>
+        <ul id="ListOfUsers"></ul>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.3.4/axios.js"></script>
+        <script>
+            // unlis=document.createElement('ul');
+            // unlis.setAttribute('id','listofitems');
+            // // body=document.getElementsByTagName('body');
+            // document.body.appendChild(unlis);
+            
+            function userDetails(event){
+                event.preventDefault();
+                const name=event.target.username.value;
+                const email=event.target.emailId.value;
+                const number=event.target.phno.value;
+
+                let userDet={
+                    name,
+                    email,
+                    number
+                }
+                axios.post("http://localhost:3000/user/add-user",userDet).then((response)=>{
+                    showNewUserOnScreen(response.data.newUserDetail)
+                    console.log(response)
+                })
+                .catch((err)=>{
+                    document.body.innerHTML=document.body.innerHTML+"<h4>Something went wrong</h4>"
+                    console.log(err)
+                })
+
+                //localStorage.setItem(email,JSON.stringify(userDet));
+                //showUserOnScreen(userDet)
+                
+                
+                
+            } 
+            window.addEventListener("DOMContentLoaded", () => {
+                    axios.get('http://localhost:3000/user/get-users').then((response)=>{
+                        console.log(response)
+                        for(var i=0;i<response.data.allUsers.length;i++){
+                                showNewUserOnScreen(response.data.allUsers[i])
+                            }
+                        }).catch((error)=>{
+                            console.log(error)
+                        })
+                        
+                })            
+                            
+            function showNewUserOnScreen(user){
+                document.getElementById('emailid').value='';
+                document.getElementById('username').value='';
+                document.getElementById('phno').value='';
+                if(localStorage.getItem(user.email)!=null){
+                    removeUserFromScreen(user.email)
+                }
+                
+                const parentNode=document.getElementById('ListOfUsers');
+                const childHTML=`<li id=${user.id}>${user.name}-${user.email}-${user.phonenumber}
+                    <button onclick=deleteUser('${user.id}')>Delete User</button>
+                    <button onclick=editUserDetails('${user.email}','${user.name}','${user.phonenumber}','${user.id}')>Edit User</button>
+                    </li>`
+                parentNode.innerHTML=parentNode.innerHTML+childHTML    
+            }
+            function deleteUser(userId){
+                axios.delete(`http://localhost:3000/user/delete-user/${userId}`)
+                    .then((response)=> {
+                        // console.log(response);
+                        removeUserFromScreen(userId)
+                    })
+                    .catch((err)=>{
+                        console.log(err)
+                    })
+            }
+            function removeUserFromScreen(userId){
+                const parentNode=document.getElementById('ListOfUsers');
+                const childNodeToBeDeleted=document.getElementById(userId);
+                // console.log(childNodeToBeDeleted);
+                if(childNodeToBeDeleted){
+                    parentNode.removeChild(childNodeToBeDeleted);
+                }
+            }
+            function editUserDetails(emailId,name,phone,userId){
+                document.getElementById('emailid').value=emailId;
+                document.getElementById('username').value=name;
+                document.getElementById('phno').value=phone;
+                deleteUser(userId)
+            }
+            // function showUserOnScreen(userDet){
+            //     var li=document.createElement('li');
+            //     li.textContent=userDet.name+'-'+userDet.email;
+            //     var deleteBtn=document.createElement('button');
+            //     deleteBtn.appendChild(document.createTextNode('Delete'));
+            //     var editBtn=document.createElement('button');
+            //     editBtn.appendChild(document.createTextNode('Edit'));
+            //     deleteBtn.onclick=() => {
+            //         localStorage.removeItem(userDet.email);
+            //         unlis.removeChild(li);
+            //     }
+            //     editBtn.onclick=() => {
+            //         document.getElementById('username').value=userDet.name;
+            //         document.getElementById('emailid').value=userDet.email;
+            //         localStorage.removeItem(userDet.email);
+            //         unlis.removeChild(li);
+            //     }
+            //     li.appendChild(deleteBtn);
+            //     li.appendChild(editBtn);
+            //     unlis.appendChild(li);
+                       
+            // }
+            
+        
+            
+        
+        </script>
+    </body>
+</html>
